@@ -17,6 +17,7 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.validation.constraints.NotEmpty;
 
+import ch.qos.logback.core.subst.Token.Type;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -41,11 +42,11 @@ public class TimeTable {
 	@Column(name = "password")
     private String password;
 	
-	@OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+	@OneToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "id_account")
 	private Account account;
 	
-	@OneToMany(mappedBy = "timetable", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+	@OneToMany(mappedBy = "timetable", fetch = FetchType.LAZY)
 	private Set<Subject> subjects;
 	
 }

@@ -17,10 +17,9 @@ public class NoteDTO {
     @NotEmpty
     private String location;
 	
-    @NotEmpty
-    private Timestamp timeStart;
+    private String timeStart;
 	
-    private Timestamp timeEnd;
+    private String timeEnd;
 	
 	private String description;
 	

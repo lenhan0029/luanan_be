@@ -50,6 +50,7 @@ public class CategoryServiceImpl implements CategoryService{
 		
 		Category categoryDTO = new Category();
 		categoryDTO.setName(dto.getName());
+		categoryDTO.setAccount(account.get());
 		Category newCategory = categoryRepositoty.save(categoryDTO);
 		return ResponseEntity.ok().body(
 				new ResponseModel("Thêm danh mục thành công",200,newCategory));
@@ -76,8 +77,8 @@ public class CategoryServiceImpl implements CategoryService{
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
 					new ResponseModel("Danh mục tài liệu không tồn tại",404));
 		}
-		Optional<Document> document = documentRepository.findByCategory(category.get());
-		if(document.get().getCategory().getAccount().getId() == id_account && document.isPresent()) {
+		List<Document> document = documentRepository.findByCategory(category.get().getId());
+		if(!document.isEmpty()) {
 			return ResponseEntity.status(HttpStatus.CONFLICT).body(
 					new ResponseModel("Danh mục có tồn tại tài liệu",409));
 		}
@@ -94,6 +95,7 @@ public class CategoryServiceImpl implements CategoryService{
 					new ResponseModel("Tài khoản không tồn tại",404));
 		}
 		List<Category> categories = categoryRepositoty.findByAccount(id_account);
+		System.out.println(categories);
 		if(categories.isEmpty()) {
 			return ResponseEntity.status(HttpStatus.CONFLICT).body(
 					new ResponseModel("Không tồn tại danh mục tài liệu",404));

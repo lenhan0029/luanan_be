@@ -1,6 +1,7 @@
 package com.luanan.quanlyghichu.Model.Entities;
 
 import java.sql.Timestamp;
+import java.time.OffsetDateTime;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -12,7 +13,14 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.persistence.TemporalType;
 import javax.validation.constraints.NotEmpty;
+
+import org.hibernate.annotations.CreationTimestamp;
+import org.springframework.data.jpa.repository.Temporal;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -41,16 +49,16 @@ public class Note {
     private String location;
 	
 	@Column(name = "time_start")
-    @NotEmpty(message = "cannot generate time start")
-    private Timestamp timeStart;
+    private OffsetDateTime timeStart;
 	
 	@Column(name = "time_end")
-    private Timestamp timeEnd;
+    private OffsetDateTime timeEnd;
 	
 	@Column(name = "description")
 	private String description;
 	
-	@ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "id_account")
+	@JsonIgnore
 	private Account account;
 }

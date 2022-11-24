@@ -72,7 +72,7 @@ public class Subject {
 	@Column(name = "note")
     private String note;
 	
-	@ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "id_timetable")
 	@JsonIgnore
 	private TimeTable timetable;

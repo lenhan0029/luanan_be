@@ -12,7 +12,7 @@ ResponseEntity<?> createTask(TaskDTO dto);
 	
 	ResponseEntity<?> deleteTask(int id);
 	
-	ResponseEntity<?> getTaskByProject(int id_account);
+	ResponseEntity<?> getTaskByProject(int id_project);
 	
 	ResponseEntity<?> getTaskById(int id);
 }

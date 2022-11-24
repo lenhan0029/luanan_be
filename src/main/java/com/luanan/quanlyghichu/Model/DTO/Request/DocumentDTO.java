@@ -19,8 +19,5 @@ public class DocumentDTO {
 	private String link;
 	
 	@NotEmpty
-	private int id_account;
-	
-	@NotEmpty
 	private int id_category;
 }

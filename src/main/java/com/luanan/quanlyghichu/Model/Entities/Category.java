@@ -40,11 +40,11 @@ public class Category {
     @NotEmpty(message = "cannot generate name")
     private String name;
 	
-	@OneToMany(mappedBy = "category", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+	@OneToMany(mappedBy = "category", fetch = FetchType.LAZY)
 	@JsonIgnore
 	private Set<Document> documents;
 	
-	@ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "id_account")
 	@JsonIgnore
 	private Account account;

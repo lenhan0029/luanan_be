@@ -10,11 +10,13 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.luanan.quanlyghichu.Model.DTO.Request.TimeTableDTO;
+import com.luanan.quanlyghichu.Model.DTO.Request.UpdateTimeTable;
 import com.luanan.quanlyghichu.Model.DTO.Response.ResponseModel;
 import com.luanan.quanlyghichu.Model.Entities.Account;
 import com.luanan.quanlyghichu.Model.Entities.Subject;
@@ -59,30 +61,108 @@ public class TimeTableServiceImpl implements TimeTableService{
 		TimeTable rs = timeTableRepsitory.save(newTimeTable);
 		boolean result = getTimeTableData(dto.getUsername(), dto.getPassword(),rs);
 		if(result == true) {
+			List<Subject> subjects = subjectRepository.findByTimeTable(rs.getId());
 			return ResponseEntity.ok().body(
-					new ResponseModel("Lấy thời khóa biểu thành công",200));
+					new ResponseModel("Lấy thời khóa biểu thành công",200,subjects));
 		}
 		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
 				new ResponseModel("Tài khoản không tồn tại",404));
 	}
 
+	@Override
+	public ResponseEntity<?> getTimeTable(int id_account) {
+		Optional<Account> account = accountRepository.findById(id_account);
+		if(account.isEmpty()) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+					new ResponseModel("Tài khoản không tồn tại",404));
+		}
+		Optional<TimeTable> timetable = timeTableRepsitory.findByAccount(id_account);
+		if(timetable.isEmpty()) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+					new ResponseModel("Thời khóa biểu đã tồn tại",404));
+		}
+		List<Subject> subjects = subjectRepository.findByTimeTable(timetable.get().getId());
+		if(subjects.size() != 0) {
+			return ResponseEntity.ok().body(
+					new ResponseModel("Lấy thời khóa biểu thành công",200,subjects)); 
+		}
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+				new ResponseModel("Lấy thời khóa biểu thất bại",404));
+	}
+
+	@Override
+	public ResponseEntity<?> addNoteToSubject(int id_subject, String note) {
+		Optional<Subject> subject = subjectRepository.findById(id_subject);
+		if(subject.isEmpty()) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+					new ResponseModel("Môn học không tồn tại",404));
+		}
+		Subject temp = subject.get();
+		temp.setNote(note);
+		Subject newSubject = subjectRepository.save(temp);
+		return ResponseEntity.ok().body(
+				new ResponseModel("Thêm ghi chú thành công",200,newSubject)); 
+	}
+
+	@Override
+	public ResponseEntity<?> updateTimeTable(UpdateTimeTable dto) {
+		Optional<TimeTable> timetable = timeTableRepsitory.findByAccount(dto.getId_account());
+		if(timetable.isEmpty()) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+					new ResponseModel("Tài khoản không tồn tại thời khóa biểu",404));
+		}
+		List<Subject> subjects = subjectRepository.findByTimeTable(timetable.get().getId());
+		String pass = timetable.get().getPassword();
+		if(!dto.getPassword().equals("")) {
+			pass = dto.getPassword();
+		}
+		boolean result = getTimeTableData(timetable.get().getUsername(),pass,timetable.get());
+			if(result == true) {
+				if(!subjects.isEmpty()) {
+					for (Subject subject : subjects) {
+						subjectRepository.delete(subject);
+					}
+				}
+				return ResponseEntity.ok().body(
+						new ResponseModel("Cập nhật thời khóa biểu thành công",200));
+			}
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+				new ResponseModel("Cập nhật thời khóa biểu thất bại",404));
+	}
+
 	public boolean getTimeTableData(String username, String password,TimeTable timetable) {
 		System.setProperty("webdriver.chrome.driver","D:\\Drivers\\chromedriver.exe");
-	    WebDriver driver = new ChromeDriver();
+		ChromeOptions options = new ChromeOptions();
+	    options.setHeadless(true);
+	    WebDriver driver = new ChromeDriver(options);
 
 	    // Navigate to URL
-	    driver.get("http://thongtindaotao.sgu.edu.vn/");
+	    driver.get("http://thongtindaotao.sgu.edu.vn");
 	    WebElement u =driver.findElement(By.id("ctl00_ContentPlaceHolder1_ctl00_ucDangNhap_txtTaiKhoa"));
 	    WebElement p=driver.findElement(By.id("ctl00_ContentPlaceHolder1_ctl00_ucDangNhap_txtMatKhau"));
 	    WebElement login=driver.findElement(By.name("ctl00$ContentPlaceHolder1$ctl00$ucDangNhap$btnDangNhap"));
+	    
+	    
 	    u.sendKeys(username);
 	    p.sendKeys(password);
+//	    u.sendKeys("3119410281");
+//	    p.sendKeys("Lenhan2001*");
 	    login.click();
+//	    String content = driver.getPageSource();
+//	    System.out.println(content);
 	    // Read page content
 	    driver.get("http://thongtindaotao.sgu.edu.vn/default.aspx?page=thoikhoabieu&sta=1");
-	    String content = driver.getPageSource();
+	    
 	        List <WebElement> totalTable = driver.findElements(By.xpath("//div[@class='grid-roll2']/table[@class='body-table']/tbody/tr/td"));
-//	    String content = driver.getCurrentUrl();
+//	    String contents = driver.getCurrentUrl();
+	       
+	        if(totalTable.isEmpty()) {
+	        	WebElement logout=driver.findElement(By.id("ctl00_Header1_Logout1_lbtnLogOut"));
+	    	    logout.click();
+	    	    // Close driver 
+	    	    driver.quit();
+	    	    return false;
+	        }
 	        List<String> list = new ArrayList<String>();
 	        for (WebElement webElement : totalTable) {
 	            list.add(webElement.getText());
@@ -180,24 +260,4 @@ public class TimeTableServiceImpl implements TimeTableService{
 	    return true;
 	}
 
-	@Override
-	public ResponseEntity<?> getTimeTable(int id_account) {
-		Optional<Account> account = accountRepository.findById(id_account);
-		if(account.isEmpty()) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-					new ResponseModel("Tài khoản không tồn tại",404));
-		}
-		Optional<TimeTable> timetable = timeTableRepsitory.findByAccount(id_account);
-		if(timetable.isEmpty()) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-					new ResponseModel("Thời khóa biểu đã tồn tại",404));
-		}
-		List<Subject> subjects = subjectRepository.findByTimeTable(timetable.get().getId());
-		if(subjects.size() != 0) {
-			return ResponseEntity.ok().body(
-					new ResponseModel("Lấy thời khóa biểu thành công",200,subjects)); 
-		}
-		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-				new ResponseModel("Lấy thời khóa biểu thất bại",404));
-	}
 }

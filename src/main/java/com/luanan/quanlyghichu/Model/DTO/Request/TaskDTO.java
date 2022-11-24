@@ -1,6 +1,5 @@
 package com.luanan.quanlyghichu.Model.DTO.Request;
 
-import java.sql.Timestamp;
 
 import javax.validation.constraints.NotEmpty;
 
@@ -14,10 +13,9 @@ public class TaskDTO {
 	@NotEmpty
     private String name;
 	
-    @NotEmpty
-    private Timestamp timeStart;
+    private String timeStart;
 	
-    private Timestamp timeEnd;
+    private String timeEnd;
 	
 	private String description;
 	

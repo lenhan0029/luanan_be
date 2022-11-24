@@ -11,7 +11,7 @@ public interface DocumentService {
 	
 	ResponseEntity<?> deleteDocument(int id);
 	
-	ResponseEntity<?> getDocumentByAccount(int id_account);
+	ResponseEntity<?> getDocumentByAccount(int id_account, String name, int idcategory, int page, String sorttype);
 	
 	ResponseEntity<?> getDocumentById(int id);
 }

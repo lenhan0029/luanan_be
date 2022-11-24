@@ -12,7 +12,7 @@ public interface NoteService {
 	
 	ResponseEntity<?> deleteNote(int id);
 	
-	ResponseEntity<?> getNoteByAccount(int id_account);
+	ResponseEntity<?> getNoteByAccount(int id_account,String title, String location, String timeStart);
 	
 	ResponseEntity<?> getNoteById(int id);
 }

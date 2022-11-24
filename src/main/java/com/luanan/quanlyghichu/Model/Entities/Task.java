@@ -1,6 +1,7 @@
 package com.luanan.quanlyghichu.Model.Entities;
 
 import java.sql.Timestamp;
+import java.time.OffsetDateTime;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -15,6 +16,8 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.validation.constraints.NotEmpty;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -39,11 +42,10 @@ public class Task {
     private String name;
 	
 	@Column(name = "time_start")
-    @NotEmpty(message = "cannot generate time start")
-    private Timestamp timeStart;
+    private OffsetDateTime timeStart;
 	
 	@Column(name = "time_end")
-    private Timestamp timeEnd;
+    private OffsetDateTime timeEnd;
 	
 	@Column(name = "description")
 	private String description;
@@ -56,7 +58,8 @@ public class Task {
 	@Enumerated(EnumType.STRING)
     private Priority priority;
 	
-	@ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "id_project")
+	@JsonIgnore
 	private Project project;
 }
