@@ -1,11 +1,19 @@
 package com.luanan.quanlyghichu.Service.ServiceImpl;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.StringTokenizer;
 
+import org.jsoup.Connection;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.nodes.FormElement;
+import org.jsoup.select.Elements;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -131,133 +139,81 @@ public class TimeTableServiceImpl implements TimeTableService{
 	}
 
 	public boolean getTimeTableData(String username, String password,TimeTable timetable) {
-		System.setProperty("webdriver.chrome.driver","D:\\Drivers\\chromedriver.exe");
-		ChromeOptions options = new ChromeOptions();
-	    options.setHeadless(true);
-	    WebDriver driver = new ChromeDriver(options);
+		
+		
+		try {
+            
+            Connection.Response connect = Jsoup.connect("http://thongtindaotao.sgu.edu.vn/").method(Connection.Method.GET)
+            .execute();
+            Document index = connect.parse();
+                FormElement form = index.select("[name=aspnetForm]").forms().get(0);
+                Connection post = form.submit();
+                Connection.KeyVal un = post.data("ctl00$ContentPlaceHolder1$ctl00$ucDangNhap$txtTaiKhoa");
+                un.value(username);
+                Connection.KeyVal pw = post.data("ctl00$ContentPlaceHolder1$ctl00$ucDangNhap$txtMatKhau");
+                pw.value(password);
+                Connection.Response res;
+                Map<String, String> loginCookies;
+            try {
+                res = post.execute();
+            } finally {
+                }
 
-	    // Navigate to URL
-	    driver.get("http://thongtindaotao.sgu.edu.vn");
-	    WebElement u =driver.findElement(By.id("ctl00_ContentPlaceHolder1_ctl00_ucDangNhap_txtTaiKhoa"));
-	    WebElement p=driver.findElement(By.id("ctl00_ContentPlaceHolder1_ctl00_ucDangNhap_txtMatKhau"));
-	    WebElement login=driver.findElement(By.name("ctl00$ContentPlaceHolder1$ctl00$ucDangNhap$btnDangNhap"));
-	    
-	    
-	    u.sendKeys(username);
-	    p.sendKeys(password);
-//	    u.sendKeys("3119410281");
-//	    p.sendKeys("Lenhan2001*");
-	    login.click();
-//	    String content = driver.getPageSource();
-//	    System.out.println(content);
-	    // Read page content
-	    driver.get("http://thongtindaotao.sgu.edu.vn/default.aspx?page=thoikhoabieu&sta=1");
-	    
-	        List <WebElement> totalTable = driver.findElements(By.xpath("//div[@class='grid-roll2']/table[@class='body-table']/tbody/tr/td"));
-//	    String contents = driver.getCurrentUrl();
-	       
-	        if(totalTable.isEmpty()) {
-	        	WebElement logout=driver.findElement(By.id("ctl00_Header1_Logout1_lbtnLogOut"));
-	    	    logout.click();
-	    	    // Close driver 
-	    	    driver.quit();
-	    	    return false;
-	        }
-	        List<String> list = new ArrayList<String>();
-	        for (WebElement webElement : totalTable) {
-	            list.add(webElement.getText());
+            loginCookies = connect.cookies();
+            Document tkb = Jsoup.connect("http://thongtindaotao.sgu.edu.vn/default.aspx?page=thoikhoabieu&sta=1")
+            .cookies(loginCookies)
+            .get();
+            Elements listElements = tkb.select(".grid-roll2 > .body-table > tbody > tr >td");
+            List<String> list = new ArrayList<String>();
+	        for (Element Element : listElements) {
+	            list.add(Element.text());
 	        }
 
-	    // Print the page content
+            System.out.println(list.get(7));
 	        List<String> listSubject = new ArrayList<String>();
 	        
 	        String day = "Hai Ba Tư Năm Sáu Bảy";
 	        while(list.size() != 0) {
-	        	int step = 1;
-	        	int i = 0;
-
-    			
-	        	while(i < list.size()){
-	        		String t = null;
-	        		StringTokenizer st = new StringTokenizer(list.get(i),"\n");
-	        		int count = st.countTokens();
-	        		if(count != 0) {
-//	        			System.out.println("Hello " + count);
-//	        			System.out.println("hi " + list.get(i));
-	        			t = st.nextToken();
-	        		}
-	        		if(i < 6) {
-		        		listSubject.add(list.get(i));
-		        		i +=1;
-		        	}else {
-		        		if(list.get(i).equals("") || list.get(i).equals("01") || list.get(i).equals("x")) {
-		        			i +=1;
-		        		continue;
-		        		}else if(t != null && day.contains(t)) {
-		        			
-		        			if(step == 1 && st.hasMoreTokens()) {
-//		        				System.out.println("Hello");
-		        				String t1 = st.nextToken();
-		        				int num = 1;
-			        			while(num < count && day.contains(t1)) {
-//			        				System.out.println("Hi");
-			        				step+=1;
-			        				num +=1;
-			        				if(num < count)
-			        				t1 = st.nextToken();
-			        			}
-		        			}
-		        			StringTokenizer d = new StringTokenizer(list.get(i),"\n");
-		        			StringTokenizer s = new StringTokenizer(list.get(i+1),"\n");
-		        			StringTokenizer n = new StringTokenizer(list.get(i+2),"\n");
-		        			StringTokenizer r = new StringTokenizer(list.get(i+3),"\n");
-		        			for(int x = 0; x < step; x++) {
-		        				Subject subject = new Subject();
-			        			subject.setCode(listSubject.get(0));
-			        			subject.setName(listSubject.get(1));
-			        			subject.setSubjectGroup(listSubject.get(2));
-			        			subject.setStc(Integer.parseInt(listSubject.get(3)));
-			        			subject.setClassCode(listSubject.get(4));
-			        			if(x==0) {
-			        				subject.setPractise(true);
-			        			}
-			        			subject.setDay(d.nextToken());
-			        			subject.setStart(Integer.parseInt(s.nextToken()));
-			        			subject.setNumber(Integer.parseInt(n.nextToken()));
-			        			subject.setRoom(r.nextToken());
-//			        			System.out.println(subject.toString());
-			        			subject.setTimetable(timetable);
-			        			subjectRepository.save(subject);
-//			        			System.out.println("steppppppppppppppppppppppppppppp" + step);
-		        			}
-//		        			System.out.println("hi" +i);
-		        			i+=6;
-		        			
-		        			
-		        		}else if(t != null && t.equals("DSSV")) {
-//		        			System.out.println("hi" +i);
-		        			int e = 0;
-		        			while(e <= i) {
-		        				list.remove(0);
-		        				e++;
-		        			}
-//		        			System.out.println(list.toString());
-		        			listSubject.removeAll(listSubject);
-//		        			System.out.println(listSubject.toString());
-		        			i=0;
-		        			step=1;
-		        			
-		        		}
-		        		
-		        	}
+	        	int step = 0;
+	        	
+	        	if(day.contains(list.get(8).split(" ")[0])) {
+	        		StringTokenizer d = new StringTokenizer(list.get(8));
+	        		StringTokenizer s = new StringTokenizer(list.get(9));
+	        		StringTokenizer n = new StringTokenizer(list.get(10));
+	        		StringTokenizer r = new StringTokenizer(list.get(11));
+	        		while(d.hasMoreTokens()) {
+	        			Subject subject = new Subject();
+	        			subject.setCode(list.get(0));
+	        			subject.setName(list.get(1));
+	        			subject.setSubjectGroup(list.get(2));
+	        			subject.setStc(Integer.parseInt(list.get(3)));
+	        			subject.setClassCode(list.get(4));
+	        			if(list.get(5)=="01" && step == 0) {
+	        				subject.setPractise(true);
+	        			}
+	        			subject.setDay(d.nextToken());
+	        			subject.setStart(Integer.parseInt(s.nextToken()));
+	        			subject.setNumber(Integer.parseInt(n.nextToken()));
+	        			subject.setRoom(r.nextToken());
+	        			subject.setTimetable(timetable);
+	        			subjectRepository.save(subject);
+	        			System.out.println(subject.toString());
+	        			}
+	        		step=0;
+	        		
+	        	}
+	        	int temp = 0;
+	        	while(temp < 15) {
+	        		list.remove(0);
+	        		temp++;
 	        	}
 	        }
-//	    System.out.println(totalTable.toString());
-	    WebElement logout=driver.findElement(By.id("ctl00_Header1_Logout1_lbtnLogOut"));
-	    logout.click();
-	    // Close driver 
-	    driver.quit();
-	    return true;
+	        return true;
+		} catch (IOException e) {
+			e.printStackTrace();
+			return false;
+		}
+	        
 	}
 
 }
