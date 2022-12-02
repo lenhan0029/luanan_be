@@ -16,6 +16,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.luanan.quanlyghichu.Model.DTO.Request.ChangePasswordDTO;
+import com.luanan.quanlyghichu.Model.DTO.Request.ChangePasswordFirstDTO;
+import com.luanan.quanlyghichu.Model.DTO.Request.EditAccountDTO;
 import com.luanan.quanlyghichu.Model.DTO.Request.LoginDTO;
 import com.luanan.quanlyghichu.Model.DTO.Request.SignupDTO;
 import com.luanan.quanlyghichu.Model.DTO.Response.LoginResponse;
@@ -72,6 +75,7 @@ public class AccountServiceImpl implements AccountService{
 		Role role = Role.valueOf(dto.getRole().toLowerCase());
 		
 		newAccount.setRole(role);
+		newAccount.setFirstLogin(true);
 		accountRepository.save(newAccount);
 		return ResponseEntity.ok().body(new ResponseModel("Đăng ký thành công",200));
 	}
@@ -98,7 +102,53 @@ public class AccountServiceImpl implements AccountService{
 		UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 		List<String> roles = userDetails.getAuthorities().stream().map(item -> item.getAuthority())
 				.collect(Collectors.toList());
-		return ResponseEntity.ok(new ResponseModel("Đăng nhập thành công",200,new LoginResponse(jwt, userDetails.getId(), userDetails.getUsername(), roles.get(0), userDetails.isStatus())));
+		return ResponseEntity.ok(new ResponseModel("Đăng nhập thành công",200,new LoginResponse(jwt, 
+				userDetails.getId(), userDetails.getUsername(), roles.get(0), userDetails.isStatus(), userDetails.isFirstLogin())));
+	}
+
+	@Override
+	public ResponseEntity<?> changePassword(ChangePasswordDTO dto) {
+		Optional<Account> optional = accountRepository.findById(dto.getAccountid());
+		if(optional.isEmpty()) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseModel(
+					"Tài khoản không tồn tại",404,dto));
+		}
+		if(!BCrypt.checkpw(dto.getOldPassword(),optional.get().getPassword())) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseModel(
+					"Mập khẩu cũ không đúng",404,dto));
+		}
+		Account account = optional.get();
+		account.setPassword(encoder.encode(dto.getNewPassword()));
+		Account newAccount = accountRepository.save(account);
+		return ResponseEntity.ok().body(new ResponseModel("Thay đổi mật khẩu thành công",200));
+	}
+
+	@Override
+	public ResponseEntity<?> changePasswordFirstLogin(ChangePasswordFirstDTO dto) {
+		Optional<Account> optional = accountRepository.findById(dto.getAccountid());
+		if(optional.isEmpty()) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseModel(
+					"Tài khoản không tồn tại",404,dto));
+		}
+		Account account = optional.get();
+		account.setPassword(encoder.encode(dto.getNewPassword()));
+		account.setFirstLogin(false);
+		Account newAccount = accountRepository.save(account);
+		return ResponseEntity.ok().body(new ResponseModel("Thay đổi mật khẩu thành công",200));
+	}
+
+	@Override
+	public ResponseEntity<?> editAccount(EditAccountDTO dto) {
+		Optional<Account> optional = accountRepository.findById(dto.getAccountid());
+		if(optional.isEmpty()) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseModel(
+					"Tài khoản không tồn tại",404,dto));
+		}
+		Account account = optional.get();
+		account.setStatus(dto.getStatus() == 1);
+		Role role = Role.valueOf(dto.getRole().toLowerCase());
+		Account newAccount = accountRepository.save(account);
+		return ResponseEntity.ok().body(new ResponseModel("Thay đổi thành công",200,newAccount));
 	}
 
 }

@@ -49,6 +49,8 @@ public class Account {
     @Enumerated(EnumType.STRING)
     private Role role;
     
+    private boolean isFirstLogin;
+    
     @OneToMany(mappedBy = "account", fetch = FetchType.LAZY)
     private Set<Note> notes;
 	

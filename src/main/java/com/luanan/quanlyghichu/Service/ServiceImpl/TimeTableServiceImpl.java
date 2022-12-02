@@ -160,16 +160,33 @@ public class TimeTableServiceImpl implements TimeTableService{
                 }
 
             loginCookies = connect.cookies();
-            Document tkb = Jsoup.connect("http://thongtindaotao.sgu.edu.vn/default.aspx?page=thoikhoabieu&sta=1")
-            .cookies(loginCookies)
-            .get();
+            Connection.Response conn = Jsoup.connect("http://thongtindaotao.sgu.edu.vn/default.aspx?page=thoikhoabieu&sta=1")
+                    .cookies(loginCookies)
+                    .method(Connection.Method.GET)
+                    .execute();
+            Document tkb = conn.parse();
             Elements listElements = tkb.select(".grid-roll2 > .body-table > tbody > tr >td");
+            if(listElements.text() == ""){
+                FormElement form1 = tkb.select("[name=aspnetForm]").forms().get(0);
+                Connection post1 = form1.submit();
+                Connection.KeyVal option = post1.data("ctl00$ContentPlaceHolder1$ctl00$ddlChonNHHK");
+                option.value("20221");
+                Connection.Response res1;
+            try {
+                res1 = post1.execute();
+            } finally {
+                }
+            tkb = Jsoup.connect("http://thongtindaotao.sgu.edu.vn/default.aspx?page=thoikhoabieu&sta=1")
+                    .cookies(loginCookies)
+                    .get();
+            listElements = tkb.select(".grid-roll2 > .body-table > tbody > tr >td");
+            }
             List<String> list = new ArrayList<String>();
 	        for (Element Element : listElements) {
 	            list.add(Element.text());
 	        }
 
-            System.out.println(list.get(7));
+//            System.out.println(list.get(7));
 	        List<String> listSubject = new ArrayList<String>();
 	        
 	        String day = "Hai Ba Tư Năm Sáu Bảy";

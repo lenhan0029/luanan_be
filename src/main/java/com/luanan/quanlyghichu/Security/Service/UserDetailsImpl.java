@@ -23,16 +23,18 @@ public class UserDetailsImpl implements UserDetails {
 
     private  boolean status;
 
+    private boolean isFirstLogin;
 
     private Collection<? extends GrantedAuthority> authorities;
 
 
-    public UserDetailsImpl(int id, String username, String password,boolean status,
+    public UserDetailsImpl(int id, String username, String password,boolean status,boolean isFirstLogin,
                            Collection<? extends GrantedAuthority> authorities) {
         this.id = id;   
         this.username = username;
         this.password = password;
         this.status = status;
+        this.isFirstLogin = isFirstLogin;
         this.authorities = authorities;
     }
 
@@ -46,6 +48,7 @@ public class UserDetailsImpl implements UserDetails {
         		account.getUsername(),
         		account.getPassword(),
                 account.isStatus(),
+                account.isFirstLogin(),
             authorities);
     }
 
@@ -94,6 +97,10 @@ public class UserDetailsImpl implements UserDetails {
 
     public void setStatus(boolean status) {
         this.status = status;
+    }
+    
+    public boolean isFirstLogin() {
+    	return isFirstLogin;
     }
 
     @Override

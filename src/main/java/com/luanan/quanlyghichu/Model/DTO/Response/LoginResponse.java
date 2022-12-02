@@ -14,14 +14,16 @@ public class LoginResponse {
 	private String roles;
 
 	private boolean status;
+	private boolean isFirstLogin;
 
-	public LoginResponse(String token, int id, String username, String roles, boolean status) {
+	public LoginResponse(String token, int id, String username, String roles, boolean status, boolean isFirstLogin) {
 		this.token = token;
 		this.type = "Bearer";
 		this.id = id;
 		this.username = username;
 		this.roles = roles;
 		this.status = status;
+		this.isFirstLogin = isFirstLogin;
 	}
 }
 
