@@ -72,7 +72,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             .antMatchers("/auth/**","/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
             .antMatchers(HttpMethod.GET, "/account").hasAuthority("admin")
             .antMatchers("/category/**", "/timetable/**", "/note/**", "/project/**", "/document/**", 
-            		"/task/**","/account/changepassword1st","/account/changepassword").hasAuthority("member")
+            		"/task/**").hasAuthority("member")
+            .antMatchers("/account/changepassword1st","/account/changepassword").hasAnyAuthority("admin","member")
             .antMatchers("/account/edit").hasAuthority("admin")
         	.anyRequest().authenticated();
 
