@@ -124,7 +124,8 @@ public class TimeTableServiceImpl implements TimeTableService{
 		if(!dto.getPassword().equals("")) {
 			pass = dto.getPassword();
 		}
-		boolean result = getTimeTableData(timetable.get().getUsername(),pass,timetable.get());
+		if(dto.getPassword() != "") {
+			boolean result = getTimeTableData(timetable.get().getUsername(),pass,timetable.get());
 			if(result == true) {
 				if(!subjects.isEmpty()) {
 					for (Subject subject : subjects) {
@@ -134,6 +135,19 @@ public class TimeTableServiceImpl implements TimeTableService{
 				return ResponseEntity.ok().body(
 						new ResponseModel("Cập nhật thời khóa biểu thành công",200));
 			}
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+					new ResponseModel("Cập nhật thời khóa biểu thất bại",404));
+		}
+		boolean result = getTimeTableData(timetable.get().getUsername(),timetable.get().getPassword(),timetable.get());
+		if(result == true) {
+			if(!subjects.isEmpty()) {
+				for (Subject subject : subjects) {
+					subjectRepository.delete(subject);
+				}
+			}
+			return ResponseEntity.ok().body(
+					new ResponseModel("Cập nhật thời khóa biểu thành công",200));
+		}
 		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
 				new ResponseModel("Cập nhật thời khóa biểu thất bại",404));
 	}

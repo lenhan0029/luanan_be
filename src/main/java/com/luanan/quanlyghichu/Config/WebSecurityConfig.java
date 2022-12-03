@@ -70,6 +70,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
             .authorizeRequests()
             .antMatchers("/auth/**","/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+            .antMatchers(HttpMethod.GET, "/account").hasAuthority("admin")
             .antMatchers("/category/**", "/timetable/**", "/note/**", "/project/**", "/document/**", 
             		"/task/**","/account/changepassword1st","/account/changepassword").hasAuthority("member")
             .antMatchers("/account/edit").hasAuthority("admin")

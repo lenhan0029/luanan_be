@@ -19,4 +19,6 @@ public interface AccountService {
 	ResponseEntity<?> changePassword(ChangePasswordDTO dto);
 	
 	ResponseEntity<?> editAccount(EditAccountDTO dto);
+	
+	ResponseEntity<?> getListAccount();
 }

@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -36,5 +37,10 @@ public class AccountController {
 	@PutMapping("/edit")
 	public ResponseEntity<?> editAccount(@RequestBody EditAccountDTO dto){
 		return accountService.editAccount(dto);
+	}
+	
+	@GetMapping
+	public ResponseEntity<?> getListAccount(){
+		return accountService.getListAccount();
 	}
 }

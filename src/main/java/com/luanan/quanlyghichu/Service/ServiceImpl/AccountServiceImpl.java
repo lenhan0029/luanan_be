@@ -151,4 +151,10 @@ public class AccountServiceImpl implements AccountService{
 		return ResponseEntity.ok().body(new ResponseModel("Thay đổi thành công",200,newAccount));
 	}
 
+	@Override
+	public ResponseEntity<?> getListAccount() {
+		List<Account> accounts = accountRepository.findAll();
+		return ResponseEntity.ok().body(new ResponseModel("Danh sách tài khoản",200,accounts));
+	}
+
 }
