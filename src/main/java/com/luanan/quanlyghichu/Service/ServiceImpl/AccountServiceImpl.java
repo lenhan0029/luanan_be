@@ -146,7 +146,6 @@ public class AccountServiceImpl implements AccountService{
 		}
 		Account account = optional.get();
 		account.setStatus(dto.getStatus() == 1);
-		Role role = Role.valueOf(dto.getRole().toLowerCase());
 		Account newAccount = accountRepository.save(account);
 		return ResponseEntity.ok().body(new ResponseModel("Thay đổi thành công",200,newAccount));
 	}

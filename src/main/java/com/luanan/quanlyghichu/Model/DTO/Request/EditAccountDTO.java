@@ -9,5 +9,4 @@ public class EditAccountDTO {
 
 	private int accountid;
 	private int status;
-	private String role;
 }
