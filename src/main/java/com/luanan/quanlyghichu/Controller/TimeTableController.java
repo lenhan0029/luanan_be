@@ -38,7 +38,7 @@ public class TimeTableController {
 			@RequestParam(name = "week",defaultValue = "1-2-3-4-5-6-7-8-9-10-11-12-13-14-15", required = false) String week,
 			@RequestParam(name = "name",defaultValue = "%", required = false) String name,
 			@RequestParam(name = "classcode",defaultValue = "%", required = false) String classcode,
-			@RequestParam(name = "type",defaultValue = "%", required = false) String type){
+			@RequestParam(name = "type",defaultValue = "teach cancel offset offseted", required = false) String type){
 		return timeTableService.getTimeTable(id_account,week,name,classcode,type);
 	}
 	@GetMapping("/subject")
