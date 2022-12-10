@@ -92,12 +92,13 @@ public class TimeTableServiceImpl implements TimeTableService{
 		}
 		String[] arr_week = week.split("-");
 		int[] listweek = Stream.of(arr_week).mapToInt(Integer::parseInt).toArray();
+		String[] arr_type = type.toLowerCase().split(" ");
 		List<Integer> tt = new ArrayList<>();
 		for (int i = 0; i < listweek.length; i++) {
 			Optional<TimeTable> timetable = timeTableRepsitory.findByAccountAndWeek(id_account, listweek[i]);
 			tt.add(timetable.get().getId());
 		}
-		List<Subject> subjects = subjectRepository.findByTimeTable(tt,name.toLowerCase(), classcode.toLowerCase(), type.toLowerCase());
+		List<Subject> subjects = subjectRepository.findByTimeTable(tt,name.toLowerCase(), classcode.toLowerCase(), arr_type);
 		if(subjects.size() != 0) {
 			return ResponseEntity.ok().body(
 					new ResponseModel("Lấy thời khóa biểu thành công",200,subjects)); 

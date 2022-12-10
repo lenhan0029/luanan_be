@@ -14,8 +14,8 @@ import com.luanan.quanlyghichu.Model.Entities.Subject;
 public interface SubjectRepository extends JpaRepository<Subject, Integer>{
 
 	@Query(value = "select * from Subject s where s.id_timetable in :idtimetable and lower(s.name) like %:name% and lower(s.class_code) like %:classcode%"
-			+ " and lower(s.type) like %:type%", nativeQuery = true)
-	List<Subject> findByTimeTable(List<Integer> idtimetable,String name, String classcode, String type);
+			+ " and lower(s.type) in :type", nativeQuery = true)
+	List<Subject> findByTimeTable(List<Integer> idtimetable,String name, String classcode, String[] type);
 	
 	@Modifying
 	@Query(value = "DELETE FROM Subject WHERE id_timetable = :idtimetable", nativeQuery = true)

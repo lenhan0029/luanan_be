@@ -41,7 +41,9 @@ public class SubjectServiceImpl implements SubjectService{
 		id_timetable.add(timetable.getId());
 
 		Subject subject = subjectRepository.findById(dto.getReference()).get();
-		List<Subject> subjects = subjectRepository.findByTimeTable(id_timetable, "%", "%", "%");
+		String type = "teach cancel offset offseted";
+		String[] arr_type = type.split(" ");
+		List<Subject> subjects = subjectRepository.findByTimeTable(id_timetable, "%", "%", arr_type);
 		for (Subject item : subjects) {
 			if(item.getDay().equals(dto.getDay())) {
 				for (int i = 0; i < item.getNumber(); i++) {
