@@ -34,14 +34,23 @@ public class TimeTableController {
 	
 	@GetMapping
 	public ResponseEntity<?> getTimeTable(
-			@RequestParam(name = "accountid",defaultValue = "0", required = false) int id_account){
-		return timeTableService.getTimeTable(id_account);
+			@RequestParam(name = "accountid",defaultValue = "0", required = false) int id_account,
+			@RequestParam(name = "week",defaultValue = "1-2-3-4-5-6-7-8-9-10-11-12-13-14-15", required = false) String week,
+			@RequestParam(name = "name",defaultValue = "%", required = false) String name,
+			@RequestParam(name = "classcode",defaultValue = "%", required = false) String classcode,
+			@RequestParam(name = "type",defaultValue = "%", required = false) String type){
+		return timeTableService.getTimeTable(id_account,week,name,classcode,type);
 	}
-	
+	@GetMapping("/subject")
+	public ResponseEntity<?> getTimeTableBySubject(
+			@RequestParam(name = "accountid",defaultValue = "0", required = false) int id_account,
+			@RequestParam(name = "subjectid",defaultValue = "1", required = false) int id_subject){
+		return timeTableService.getTimeTableBySubject(id_account,id_subject);
+	}
 	@PutMapping
 	public ResponseEntity<?> addNoteforSubject(@RequestParam(name = "subjectid",defaultValue = "0", required = true) int id_subject,
 			@RequestBody SubjectDTO dto){
-		return timeTableService.addNoteToSubject(id_subject, dto.getNote());
+		return timeTableService.addNoteToSubject(id_subject, dto.getNote(),dto.getType());
 	}
 	
 	@PostMapping("/update")

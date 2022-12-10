@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.StringTokenizer;
+import java.util.stream.Stream;
 
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
@@ -29,6 +30,7 @@ import com.luanan.quanlyghichu.Model.DTO.Response.ResponseModel;
 import com.luanan.quanlyghichu.Model.Entities.Account;
 import com.luanan.quanlyghichu.Model.Entities.Subject;
 import com.luanan.quanlyghichu.Model.Entities.TimeTable;
+import com.luanan.quanlyghichu.Model.Entities.Type;
 import com.luanan.quanlyghichu.Repository.AccountRepository;
 import com.luanan.quanlyghichu.Repository.SubjectRepository;
 import com.luanan.quanlyghichu.Repository.TimeTableRepsitory;
@@ -54,59 +56,66 @@ public class TimeTableServiceImpl implements TimeTableService{
 		// TODO Auto-generated method stub
 		Optional<Account> account = accountRepository.findById(dto.getId_account());
 		if(account.isEmpty()) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+			return ResponseEntity.ok().body(
 					new ResponseModel("Tài khoản không tồn tại",404));
 		}
-		Optional<TimeTable> timetable = timeTableRepsitory.findByAccount(dto.getId_account());
+		Optional<TimeTable> timetable = timeTableRepsitory.findByAccountAndWeek(dto.getId_account(),1);
 		if(timetable.isPresent()) {
-			return ResponseEntity.status(HttpStatus.CONFLICT).body(
+			return ResponseEntity.ok().body(
 					new ResponseModel("Thời khóa biểu đã tồn tại",409));
 		}
-		TimeTable newTimeTable = new TimeTable();
-		newTimeTable.setUsername(dto.getUsername());
-		newTimeTable.setPassword(dto.getPassword());
-		newTimeTable.setAccount(account.get());
-		TimeTable rs = timeTableRepsitory.save(newTimeTable);
-		boolean result = getTimeTableData(dto.getUsername(), dto.getPassword(),rs);
-		if(result == true) {
-			List<Subject> subjects = subjectRepository.findByTimeTable(rs.getId());
-			return ResponseEntity.ok().body(
-					new ResponseModel("Lấy thời khóa biểu thành công",200,subjects));
+		boolean result = false;
+		for(int i = 1; i <= 15; i++) {
+			TimeTable newTimeTable = new TimeTable();
+			newTimeTable.setUsername(dto.getUsername());
+			newTimeTable.setPassword(dto.getPassword());
+			newTimeTable.setAccount(account.get());
+			newTimeTable.setWeek(i);
+			TimeTable rs = timeTableRepsitory.save(newTimeTable);
+			result = getTimeTableData(dto.getUsername(), dto.getPassword(),rs);
 		}
-		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+		if(result == true) {
+//			List<Subject> subjects = subjectRepository.findByTimeTable(rs.getId());
+			return ResponseEntity.ok().body(
+					new ResponseModel("Lấy thời khóa biểu thành công",200));
+		}
+		return ResponseEntity.ok().body(
 				new ResponseModel("Tài khoản không tồn tại",404));
 	}
 
 	@Override
-	public ResponseEntity<?> getTimeTable(int id_account) {
+	public ResponseEntity<?> getTimeTable(int id_account, String week, String name, String classcode, String type) {
 		Optional<Account> account = accountRepository.findById(id_account);
 		if(account.isEmpty()) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+			return ResponseEntity.ok().body(
 					new ResponseModel("Tài khoản không tồn tại",404));
 		}
-		Optional<TimeTable> timetable = timeTableRepsitory.findByAccount(id_account);
-		if(timetable.isEmpty()) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-					new ResponseModel("Thời khóa biểu đã tồn tại",404));
+		String[] arr_week = week.split("-");
+		int[] listweek = Stream.of(arr_week).mapToInt(Integer::parseInt).toArray();
+		List<Integer> tt = new ArrayList<>();
+		for (int i = 0; i < listweek.length; i++) {
+			Optional<TimeTable> timetable = timeTableRepsitory.findByAccountAndWeek(id_account, listweek[i]);
+			tt.add(timetable.get().getId());
 		}
-		List<Subject> subjects = subjectRepository.findByTimeTable(timetable.get().getId());
+		List<Subject> subjects = subjectRepository.findByTimeTable(tt,name.toLowerCase(), classcode.toLowerCase(), type.toLowerCase());
 		if(subjects.size() != 0) {
 			return ResponseEntity.ok().body(
 					new ResponseModel("Lấy thời khóa biểu thành công",200,subjects)); 
 		}
-		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+		return ResponseEntity.ok().body(
 				new ResponseModel("Lấy thời khóa biểu thất bại",404));
 	}
 
 	@Override
-	public ResponseEntity<?> addNoteToSubject(int id_subject, String note) {
+	public ResponseEntity<?> addNoteToSubject(int id_subject, String note, String type) {
 		Optional<Subject> subject = subjectRepository.findById(id_subject);
 		if(subject.isEmpty()) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+			return ResponseEntity.ok().body(
 					new ResponseModel("Môn học không tồn tại",404));
 		}
 		Subject temp = subject.get();
 		temp.setNote(note);
+		temp.setType(Type.valueOf(type));
 		Subject newSubject = subjectRepository.save(temp);
 		return ResponseEntity.ok().body(
 				new ResponseModel("Thêm ghi chú thành công",200,newSubject)); 
@@ -114,40 +123,40 @@ public class TimeTableServiceImpl implements TimeTableService{
 
 	@Override
 	public ResponseEntity<?> updateTimeTable(UpdateTimeTable dto) {
-		Optional<TimeTable> timetable = timeTableRepsitory.findByAccount(dto.getId_account());
-		if(timetable.isEmpty()) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-					new ResponseModel("Tài khoản không tồn tại thời khóa biểu",404));
-		}
-		List<Subject> subjects = subjectRepository.findByTimeTable(timetable.get().getId());
-		String pass = timetable.get().getPassword();
-		if(!dto.getPassword().equals("")) {
-			pass = dto.getPassword();
-		}
-		if(dto.getPassword() != "") {
-			boolean result = getTimeTableData(timetable.get().getUsername(),pass,timetable.get());
-			if(result == true) {
-				if(!subjects.isEmpty()) {
-					for (Subject subject : subjects) {
-						subjectRepository.delete(subject);
-					}
-				}
-				return ResponseEntity.ok().body(
-						new ResponseModel("Cập nhật thời khóa biểu thành công",200));
-			}
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-					new ResponseModel("Cập nhật thời khóa biểu thất bại",404));
-		}
-		boolean result = getTimeTableData(timetable.get().getUsername(),timetable.get().getPassword(),timetable.get());
-		if(result == true) {
-			if(!subjects.isEmpty()) {
-				for (Subject subject : subjects) {
-					subjectRepository.delete(subject);
-				}
-			}
-			return ResponseEntity.ok().body(
-					new ResponseModel("Cập nhật thời khóa biểu thành công",200));
-		}
+//		Optional<TimeTable> timetable = timeTableRepsitory.findByAccountAndWeek(dto.getId_account(),dto.getWeek());
+//		if(timetable.isEmpty()) {
+//			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+//					new ResponseModel("Tài khoản không tồn tại thời khóa biểu",404));
+//		}
+//		List<Subject> subjects = subjectRepository.findByTimeTable(timetable.get().getId());
+//		String pass = timetable.get().getPassword();
+//		if(!dto.getPassword().equals("")) {
+//			pass = dto.getPassword();
+//		}
+//		if(dto.getPassword() != "") {
+//			boolean result = getTimeTableData(timetable.get().getUsername(),pass,timetable.get());
+//			if(result == true) {
+//				if(!subjects.isEmpty()) {
+//					for (Subject subject : subjects) {
+//						subjectRepository.delete(subject);
+//					}
+//				}
+//				return ResponseEntity.ok().body(
+//						new ResponseModel("Cập nhật thời khóa biểu thành công",200));
+//			}
+//			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+//					new ResponseModel("Cập nhật thời khóa biểu thất bại",404));
+//		}
+//		boolean result = getTimeTableData(timetable.get().getUsername(),timetable.get().getPassword(),timetable.get());
+//		if(result == true) {
+//			if(!subjects.isEmpty()) {
+//				for (Subject subject : subjects) {
+//					subjectRepository.delete(subject);
+//				}
+//			}
+//			return ResponseEntity.ok().body(
+//					new ResponseModel("Cập nhật thời khóa biểu thành công",200));
+//		}
 		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
 				new ResponseModel("Cập nhật thời khóa biểu thất bại",404));
 	}
@@ -226,6 +235,9 @@ public class TimeTableServiceImpl implements TimeTableService{
 	        			subject.setStart(Integer.parseInt(s.nextToken()));
 	        			subject.setNumber(Integer.parseInt(n.nextToken()));
 	        			subject.setRoom(r.nextToken());
+	        			subject.setType(Type.valueOf("teach"));
+	        			subject.setListStudent("http://thongtindaotao.sgu.edu.vn/Default.aspx?page=danhsachsvtheonhomhoc&malop="+ list.get(4) 
+	        			+"&madk="+ list.get(0)+ list.get(2) +"%20%2001");
 	        			subject.setTimetable(timetable);
 	        			subjectRepository.save(subject);
 	        			System.out.println(subject.toString());
@@ -245,6 +257,14 @@ public class TimeTableServiceImpl implements TimeTableService{
 			return false;
 		}
 	        
+	}
+
+	@Override
+	public ResponseEntity<?> getTimeTableBySubject(int id_account, int id_subject) {
+		Subject subject = subjectRepository.findById(id_subject).get();
+		return ResponseEntity.ok().body(
+				new ResponseModel("Thời khóa biểu",200,new int[] {
+					subject.getSubjectReferenceFrom().getTimetable().getWeek(), subject.getSubjectReferenceFrom().getId()})); 
 	}
 
 }

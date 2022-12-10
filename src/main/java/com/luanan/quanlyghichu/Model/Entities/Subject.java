@@ -3,12 +3,15 @@ package com.luanan.quanlyghichu.Model.Entities;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.validation.constraints.NotEmpty;
 
@@ -71,6 +74,18 @@ public class Subject {
 	
 	@Column(name = "note")
     private String note;
+	
+	@Column(name = "type")
+	@Enumerated(EnumType.STRING)
+	private Type type;
+	
+	@OneToOne
+	@JoinColumn(name = "subject_reference", referencedColumnName = "id")
+	private Subject subjectReferenceFrom;
+	
+	@OneToOne(mappedBy = "subjectReferenceFrom")
+	@JsonIgnore
+	private Subject subjectReferenceTo;
 	
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "id_timetable")

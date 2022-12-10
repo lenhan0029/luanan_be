@@ -8,4 +8,6 @@ import lombok.Setter;
 public class SubjectDTO {
 
 	private String note;
+	
+	private String type;
 }

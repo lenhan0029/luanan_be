@@ -9,9 +9,11 @@ public interface TimeTableService {
 
 	ResponseEntity<?> createTimeTable(TimeTableDTO dto);
 	
-	ResponseEntity<?> getTimeTable(int id_account);
+	ResponseEntity<?> getTimeTable(int id_account, String week, String name, String classcode, String type);
 	
-	ResponseEntity<?> addNoteToSubject(int id_subject, String note);
+	ResponseEntity<?> addNoteToSubject(int id_subject, String note,String type);
 	
 	ResponseEntity<?> updateTimeTable(UpdateTimeTable dto);
+	
+	ResponseEntity<?> getTimeTableBySubject(int id_account, int id_subject);
 }

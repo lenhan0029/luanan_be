@@ -61,9 +61,9 @@ public class Account {
     @JsonIgnore
     private Set<Project> projects;
     
-    @OneToOne(mappedBy = "account", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "account", fetch = FetchType.LAZY)
     @JsonIgnore
-    private TimeTable timetables;
+    private Set<TimeTable> timetables;
     
     @OneToMany(mappedBy = "account", fetch = FetchType.LAZY)
     @JsonIgnore

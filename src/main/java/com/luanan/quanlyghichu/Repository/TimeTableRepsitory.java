@@ -10,6 +10,6 @@ import com.luanan.quanlyghichu.Model.Entities.TimeTable;
 
 public interface TimeTableRepsitory extends JpaRepository<TimeTable, Integer>{
 
-	@Query(value = "select * from TimeTable t where t.id_account = :idaccount", nativeQuery = true)
-	Optional<TimeTable> findByAccount(@Param("idaccount") int idaccount);
+	@Query(value = "select * from TimeTable t where t.id_account = :idaccount and t.week = :week", nativeQuery = true)
+	Optional<TimeTable> findByAccountAndWeek(@Param("idaccount") int idaccount, @Param("week") int week);
 }

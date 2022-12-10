@@ -9,5 +9,7 @@ public class UpdateTimeTable {
 
 	private String password;
 	
+	private int week;
+	
 	private int id_account;
 }

@@ -17,6 +17,8 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.validation.constraints.NotEmpty;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import ch.qos.logback.core.subst.Token.Type;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -42,11 +44,16 @@ public class TimeTable {
 	@Column(name = "password")
     private String password;
 	
-	@OneToOne(fetch = FetchType.LAZY)
+	@Column(name = "week")
+    private int week;
+	
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "id_account")
+	@JsonIgnore
 	private Account account;
 	
 	@OneToMany(mappedBy = "timetable", fetch = FetchType.LAZY)
+	@JsonIgnore
 	private Set<Subject> subjects;
 	
 }
