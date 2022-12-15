@@ -68,4 +68,8 @@ public class Account {
     @OneToMany(mappedBy = "account", fetch = FetchType.LAZY)
     @JsonIgnore
     private Set<Category> categories;
+    
+    @OneToMany(mappedBy = "account", fetch = FetchType.LAZY)
+    @JsonIgnore
+    private Set<OwnClass> classes;
 }

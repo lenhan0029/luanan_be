@@ -65,6 +65,7 @@ public class TimeTableServiceImpl implements TimeTableService{
 					new ResponseModel("Thời khóa biểu đã tồn tại",409));
 		}
 		boolean result = false;
+		List<TimeTable> timetables = new ArrayList<>();
 		for(int i = 1; i <= 15; i++) {
 			TimeTable newTimeTable = new TimeTable();
 			newTimeTable.setUsername(dto.getUsername());
@@ -72,8 +73,9 @@ public class TimeTableServiceImpl implements TimeTableService{
 			newTimeTable.setAccount(account.get());
 			newTimeTable.setWeek(i);
 			TimeTable rs = timeTableRepsitory.save(newTimeTable);
-			result = getTimeTableData(dto.getUsername(), dto.getPassword(),rs);
+			timetables.add(rs);
 		}
+		result = getTimeTableData(dto.getUsername(), dto.getPassword(),timetables);
 		if(result == true) {
 //			List<Subject> subjects = subjectRepository.findByTimeTable(rs.getId());
 			return ResponseEntity.ok().body(
@@ -124,45 +126,53 @@ public class TimeTableServiceImpl implements TimeTableService{
 
 	@Override
 	public ResponseEntity<?> updateTimeTable(UpdateTimeTable dto) {
-//		Optional<TimeTable> timetable = timeTableRepsitory.findByAccountAndWeek(dto.getId_account(),dto.getWeek());
-//		if(timetable.isEmpty()) {
-//			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-//					new ResponseModel("Tài khoản không tồn tại thời khóa biểu",404));
-//		}
-//		List<Subject> subjects = subjectRepository.findByTimeTable(timetable.get().getId());
-//		String pass = timetable.get().getPassword();
-//		if(!dto.getPassword().equals("")) {
-//			pass = dto.getPassword();
-//		}
-//		if(dto.getPassword() != "") {
-//			boolean result = getTimeTableData(timetable.get().getUsername(),pass,timetable.get());
-//			if(result == true) {
-//				if(!subjects.isEmpty()) {
-//					for (Subject subject : subjects) {
-//						subjectRepository.delete(subject);
-//					}
-//				}
-//				return ResponseEntity.ok().body(
-//						new ResponseModel("Cập nhật thời khóa biểu thành công",200));
-//			}
-//			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-//					new ResponseModel("Cập nhật thời khóa biểu thất bại",404));
-//		}
-//		boolean result = getTimeTableData(timetable.get().getUsername(),timetable.get().getPassword(),timetable.get());
-//		if(result == true) {
-//			if(!subjects.isEmpty()) {
-//				for (Subject subject : subjects) {
-//					subjectRepository.delete(subject);
-//				}
-//			}
-//			return ResponseEntity.ok().body(
-//					new ResponseModel("Cập nhật thời khóa biểu thành công",200));
-//		}
+		List<TimeTable> timetables = new ArrayList<>();
+		for (int i = 1; i <= 15 ; i++) {
+			timetables.add(timeTableRepsitory.findByAccountAndWeek(dto.getId_account(),i).get());
+		}
+		if(timetables.isEmpty()) {
+			return ResponseEntity.ok().body(
+					new ResponseModel("Tài khoản không tồn tại thời khóa biểu",404));
+		}
+		List<Integer> id_timetable = new ArrayList<>();
+		for (TimeTable timetable : timetables) {
+			id_timetable.add(timetable.getId());
+		}
+		String[] types = new String[] {"teach","cancel","offset", "offseted"};
+		List<Subject> subjects = subjectRepository.findByTimeTable(id_timetable, "%", "%",types);
+		String pass = timetables.get(0).getPassword();
+		if(!dto.getPassword().equals("")) {
+			pass = dto.getPassword();
+		}
+		if(dto.getPassword() != "") {
+			boolean result = getTimeTableData(timetables.get(0).getUsername(),pass,timetables);
+			if(result == true) {
+				if(!subjects.isEmpty()) {
+					for (Subject subject : subjects) {
+						subjectRepository.delete(subject);
+					}
+				}
+				return ResponseEntity.ok().body(
+						new ResponseModel("Cập nhật thời khóa biểu thành công",200));
+			}
+			return ResponseEntity.ok().body(
+					new ResponseModel("Cập nhật thời khóa biểu thất bại",404));
+		}
+		boolean result = getTimeTableData(timetables.get(0).getUsername(),timetables.get(0).getPassword(),timetables);
+		if(result == true) {
+			if(!subjects.isEmpty()) {
+				for (Subject subject : subjects) {
+					subjectRepository.delete(subject);
+				}
+			}
+			return ResponseEntity.ok().body(
+					new ResponseModel("Cập nhật thời khóa biểu thành công",200));
+		}
 		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
 				new ResponseModel("Cập nhật thời khóa biểu thất bại",404));
 	}
 
-	public boolean getTimeTableData(String username, String password,TimeTable timetable) {
+	public boolean getTimeTableData(String username, String password,List<TimeTable> timetable) {
 		
 		
 		try {
@@ -222,27 +232,45 @@ public class TimeTableServiceImpl implements TimeTableService{
 	        		StringTokenizer s = new StringTokenizer(list.get(9));
 	        		StringTokenizer n = new StringTokenizer(list.get(10));
 	        		StringTokenizer r = new StringTokenizer(list.get(11));
+	        		
+	        		String code,name,group,classcode,sday,room,slist;
+	        		int stc,start,number;
+	        		boolean practise = false;
+	        		Type type;
 	        		while(d.hasMoreTokens()) {
-	        			Subject subject = new Subject();
-	        			subject.setCode(list.get(0));
-	        			subject.setName(list.get(1));
-	        			subject.setSubjectGroup(list.get(2));
-	        			subject.setStc(Integer.parseInt(list.get(3)));
-	        			subject.setClassCode(list.get(4));
-	        			if(list.get(5)=="01" && step == 0) {
-	        				subject.setPractise(true);
+	        			code = list.get(0);
+	        			name = list.get(1);
+	        			group = list.get(2);
+	        			stc = Integer.parseInt(list.get(3));
+	        			classcode = list.get(4);
+	        			if(list.get(5).equals("01") && step == 0) {
+	        				practise = true;
 	        			}
-	        			subject.setDay(d.nextToken());
-	        			subject.setStart(Integer.parseInt(s.nextToken()));
-	        			subject.setNumber(Integer.parseInt(n.nextToken()));
-	        			subject.setRoom(r.nextToken());
-	        			subject.setType(Type.valueOf("teach"));
-	        			subject.setListStudent("http://thongtindaotao.sgu.edu.vn/Default.aspx?page=danhsachsvtheonhomhoc&malop="+ list.get(4) 
-	        			+"&madk="+ list.get(0)+ list.get(2) +"%20%2001");
-	        			subject.setTimetable(timetable);
-	        			subjectRepository.save(subject);
-	        			System.out.println(subject.toString());
-	        			}
+	        			sday = d.nextToken();
+	        			start = Integer.parseInt(s.nextToken());
+	        			number = Integer.parseInt(n.nextToken());
+	        			room = r.nextToken();
+	        			type = Type.valueOf("teach");
+	        			slist = "http://thongtindaotao.sgu.edu.vn/Default.aspx?page=danhsachsvtheonhomhoc&malop="+ list.get(4) 
+	        			+"&madk="+ list.get(0)+ list.get(2) +"%20%2001";
+			        		for (int i = 0; i <15; i++) {
+			        		Subject subject = new Subject();
+			        		subject.setCode(code);
+		        			subject.setName(name);
+		        			subject.setSubjectGroup(group);
+		        			subject.setStc(stc);
+		        			subject.setClassCode(classcode);
+		        			subject.setPractise(practise);
+		        			subject.setDay(sday);
+		        			subject.setStart(start);
+		        			subject.setNumber(number);
+		        			subject.setRoom(room);
+		        			subject.setType(type);
+		        			subject.setListStudent(slist);
+		        			subject.setTimetable(timetable.get(i));
+		        			subjectRepository.save(subject);
+		        			}
+					}
 	        		step=0;
 	        		
 	        	}

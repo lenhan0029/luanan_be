@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import com.luanan.quanlyghichu.Model.DTO.Request.CreateSubjectDTO;
 import com.luanan.quanlyghichu.Model.DTO.Response.ResponseModel;
+import com.luanan.quanlyghichu.Model.DTO.Response.SubjectDTO;
 import com.luanan.quanlyghichu.Model.Entities.Subject;
 import com.luanan.quanlyghichu.Model.Entities.TimeTable;
 import com.luanan.quanlyghichu.Model.Entities.Type;
@@ -75,6 +76,14 @@ public class SubjectServiceImpl implements SubjectService{
 		subjectRepository.save(subject);
 		return ResponseEntity.ok().body(
 				new ResponseModel("thành công",200,rs));
+	}
+
+
+	@Override
+	public ResponseEntity<?> getById(int id) {
+		SubjectDTO subject = subjectRepository.getById(id);
+		return ResponseEntity.ok().body(
+				new ResponseModel("thành công",200,subject));
 	}
 
 }

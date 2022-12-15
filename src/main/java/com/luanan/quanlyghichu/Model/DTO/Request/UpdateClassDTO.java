@@ -5,9 +5,11 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class UpdateTimeTable {
+public class UpdateClassDTO {
 
-	private String password;
+	private String listsv;
 	
-	private int id_account;
+	private String progress;
+	
+	private String note;
 }
