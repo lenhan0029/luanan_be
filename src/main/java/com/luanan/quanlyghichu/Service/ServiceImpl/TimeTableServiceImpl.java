@@ -149,6 +149,12 @@ public class TimeTableServiceImpl implements TimeTableService{
 			if(result == true) {
 				if(!subjects.isEmpty()) {
 					for (Subject subject : subjects) {
+						if(subject.getSubjectReferenceFrom() != null) {
+							subjectRepository.delete(subject);
+							subjects.remove(subject);
+						}
+					}
+					for (Subject subject : subjects) {
 						subjectRepository.delete(subject);
 					}
 				}

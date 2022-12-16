@@ -42,7 +42,7 @@ public class NoteServiceImpl implements NoteService{
 	public ResponseEntity<?> createNote(NoteDTO dto) {
 		Optional<Account> account = accountRepository.findById(dto.getId_account());
 		if(account.isEmpty()) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+			return ResponseEntity.ok().body(
 					new ResponseModel("Tài khoản không tồn tại",404));
 		}
 		Note note = new Note();
